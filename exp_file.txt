@@ -1,0 +1,166 @@
+visual-search-local/
+│
+├── api/
+│   └── main.py                # FastAPI app (search API + UI)
+│
+├── docker/
+│   ├── Dockerfile.api          # Dockerfile for the API service
+│   └── docker-compose.yml      # Runs Qdrant + API
+│
+├── images/                     # Your image dataset (500, 7000, etc.)
+│
+├── outputs/                    # Local saved embeddings + meta
+│   └── index/                  # Contains image_vecs.npy, text_vecs.npy, meta.jsonl
+│
+├── scripts/
+│   ├── build_index.py          # Index builder (BLIP + CLIP → Qdrant)
+│   ├── download_images.py      # (optional) Downloads images from CSV
+│   ├── load_existing_data.py   # Reloads local embeddings into Qdrant
+│   └── search_cli.py           # (optional) CLI testing
+│
+├── src/
+│   ├── __init__.py
+│   ├── db.py                   # Vector DB abstraction (Qdrant backend)
+│   ├── embeddings.py           # (optional if separated, else merged in models.py)
+│   ├── explain.py              # Generates "Why?" explanations
+│   ├── index.py                # Wrapper to orchestrate indexing
+│   ├── models.py               # BLIP (captions) + OpenCLIP (embeddings)
+│   └── preprocess.py           # Preprocess images → captions, keywords, embeddings
+│
+├── web/
+│   └── index.html              # UI (search input + grid)
+│
+├── requirements.txt            # Python dependencies
+├── README.md                   # (optional) project docs
+
+In this project, every image is encoded into two spaces: an image embedding (img_vec) using CLIP’s vision encoder, and a text embedding (text_vec) from its BLIP-generated caption + keywords using CLIP’s text encoder.
+
+A query is always encoded with the CLIP text encoder. Then we perform semantic search in Qdrant by comparing the query vector against the stored vectors.
+
+Retrieval can be done in three ways: text-only, image-only (cross-modal), or a hybrid fusion where we combine similarities from both spaces.
+
+We use cosine similarity + HNSW indexing in Qdrant, which makes search efficient even for thousands of images.
+
+The final results are ranked by similarity, and metadata like caption + keywords is returned alongside the image to provide both context and explainability.
+
+
+
+
+
+How to run (local, without Docker for API)
+
+1. Start Qdrant:
+docker run -d --name qdrant -p 6333:6333 -v %cd%/qdrant_storage:/qdrant/storage qdrant/qdrant:latest
+
+2. Build the index (BLIP captions → keywords → text_vec; and image_vec):
+python -m scripts.build_index --images_dir ./images --out_dir outputs/index --limit 2500
+
+3. start the API
+uvicorn api.main:app --port 8000
+
+4. Open the UI:
+http://127.0.0.1:8000/ui/
+
+5. Test API modes:
+
+Hybrid (default in UI):
+http://127.0.0.1:8000/search/text?q=cheetah&top_k=5
+
+Image-only:
+...&mode=image
+
+Text-only:
+...&mode=text
+
+
+
+python -m scripts.clean_meta_and_rebuild_textvecs --data_dir outputs/index --push_qdrant
+
+
+
+
+A) One-time repair of existing outputs (fast)
+# 1) Clean captions + rebuild ONLY text_vecs, overwrite files, and push to Qdrant
+python -m scripts.clean_meta_and_rebuild_textvecs --data_dir outputs/index --push_qdrant
+
+# If you prefer to not overwrite yet:
+# python -m scripts.clean_meta_and_rebuild_textvecs --data_dir outputs/index --no_overwrite
+# (then inspect 'text_vecs.cleaned.npy' & 'meta.json' before replacing)
+
+B) Future runs (fresh indexing)
+
+Just run your normal build; it already calls the cleaner inside preprocess.py:
+
+python -m scripts.build_index --images_dir ./images --out_dir outputs/index --limit 2500
+
+
+
+
+execution steps
+
+Step 1. Start Qdrant (Vector Database)
+docker start qdrant
+
+
+(or if it doesn’t exist yet)
+
+docker run -d --name qdrant -p 6333:6333 -v %cd%\qdrant_storage:/qdrant/storage qdrant/qdrant:latest
+
+
+Check it’s running:
+
+docker ps
+
+Step 2. Push cleaned data into Qdrant
+
+If you just cleaned:
+
+python -m scripts.clean_meta_and_rebuild_textvecs --data_dir outputs/index --push_qdrant
+
+
+If data is already cleaned and saved (no need to regenerate captions/vectors):
+
+python -m scripts.load_existing_data --data_dir outputs/index
+
+Step 3. Start the FastAPI backend
+uvicorn api.main:app --port 8000
+
+
+Now your API is available at:
+
+http://127.0.0.1:8000/search/text
+
+http://127.0.0.1:8000/ui/
+
+
+docker start qdrant
+python -m scripts.load_existing_data --data_dir outputs/index
+uvicorn api.main:app --port 8000
+
+
+
+1. Git
+
+git init
+git add .
+
+# Navigate to your project directory
+cd path/to/your/SMART_IMAGE_RETRIEVAL_TOOL
+
+# Initialize git (if not done already)
+git init
+
+# Add all files
+git add .
+
+# Commit with message
+git commit -m "first commit"
+
+# Set main branch
+git branch -M main
+
+# Add remote repository
+git remote add origin https://github.com/Vimalkanth7/Smart-Image-Retrieval-Tool.git
+
+# Push to GitHub
+git push -u origin main

@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Smart Image Retrieval Tool</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=1">
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; }
+    .row { display:flex; gap:12px; align-items:center; flex-wrap: wrap; }
+    input, select { padding:10px; border-radius:10px; border:1px solid #ccc; }
+    input { width:420px; }
+    button { padding:10px 14px; border-radius:10px; border:1px solid #999; cursor:pointer; }
+    .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap:18px; margin-top:18px; }
+    .card { border:1px solid #e6e6e6; border-radius:12px; padding:12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .cap { color:#333; font-size:14px; margin-top:6px; }
+    .kw { color:#666; font-size:12px; margin-top:6px; }
+    .why { color:#444; font-size:12px; background:#f6f6f6; border-radius:8px; padding:8px; margin-top:8px; display:none; }
+    img { width:100%; height:180px; object-fit:cover; border-radius:8px; background:#fafafa; }
+    .hint { color:#666; font-size:13px; margin-top:12px; }
+    .err { color:#b00020; font-size:13px; margin-top:8px; display:none; }
+  </style>
+</head>
+<body>
+  <h2>Visual Search</h2>
+  <div class="row">
+    <input id="q" placeholder="Type a query and click Search"/>
+    <select id="mode">
+      <option value="" selected disabled hidden>Select type</option> <!-- placeholder -->
+      <option value="image">image (text→image_vec)</option>
+      <option value="text">text (text→text_vec)</option>
+    </select>
+    <button onclick="go()">Search</button>
+  </div>
+
+  <div class="hint">Nothing is shown until you select a type and enter a query.</div>
+  <div id="err" class="err"></div>
+  <div id="grid" class="grid"></div>
+
+  <script>
+    async function go(){
+      const q = (document.getElementById('q').value || '').trim();
+      const mode = document.getElementById('mode').value;
+      const err = document.getElementById('err');
+      const grid = document.getElementById('grid');
+
+      // Clear previous state
+      err.style.display = 'none';
+      err.textContent = '';
+      grid.innerHTML = '';
+
+      // Do NOT search with empty query or unselected mode
+      if (!mode) {
+        err.textContent = 'Please select a type (image or text).';
+        err.style.display = 'block';
+        return;
+      }
+      if (!q) {
+        err.textContent = 'Please enter a query.';
+        err.style.display = 'block';
+        return;
+      }
+
+      const res = await fetch(`/search/text?q=${encodeURIComponent(q)}&top_k=5&mode=${mode}`);
+      const data = await res.json();
+      console.log('search results:', data);
+
+      if (!data.results || data.results.length === 0) {
+        err.textContent = 'No results found.';
+        err.style.display = 'block';
+        return;
+      }
+
+      for (const [i, r] of data.results.entries()){
+        const el = document.createElement('div'); el.className='card';
+        const whyId = `why-${i}`;
+        el.innerHTML = `
+          <img src="${r.image_url}" onerror="this.style.display='none'">
+          <!-- Score intentionally hidden -->
+          <div class="cap">${r.caption || ''}</div>
+          <div class="kw"># ${[...(r.keywords||[])].join(', ')}</div>
+          <div class="row" style="margin-top:8px">
+            <button onclick="toggleWhy('${whyId}')">Reason</button>
+          </div>
+          <div id="${whyId}" class="why">${r.why}</div>
+        `;
+        grid.appendChild(el);
+      }
+    }
+    function toggleWhy(id){
+      const el = document.getElementById(id);
+      el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+    }
+    // IMPORTANT: We do NOT auto-call go() on load, so refresh shows nothing.
+  </script>
+</body>
+</html>
