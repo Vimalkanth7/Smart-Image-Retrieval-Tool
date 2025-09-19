@@ -88,4 +88,15 @@ uvicorn api.main:app --port 8000
   python -m scripts.clean_meta_and_rebuild_textvecs --data_dir outputs/index --push_qdrant
   ```
 - All vectors and metadata are saved under `outputs/index`.  
-- Qdrant persists data under `qdrant_storage` (safe across restarts).  
+- Qdrant persists data under `qdrant_storage` (safe across restarts).
+
+
+### 🚀 Quick Start (Docker)
+
+Clone repo and run:
+
+```bash
+git clone https://github.com/Vimalkanth7/Smart-Image-Retrieval-Tool.git
+cd Smart-Image-Retrieval-Tool/docker
+docker-compose up --build
+
