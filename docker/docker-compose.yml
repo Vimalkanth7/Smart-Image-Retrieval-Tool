@@ -20,3 +20,12 @@ services:
       - ../images:/app/images:ro
       - ../outputs:/app/outputs:ro
     depends_on: [qdrant]
+
+  # Add this web service:
+  web:
+    image: nginx:alpine
+    container_name: visual-search-web
+    ports: ["80:80"]
+    volumes:
+      - ../web:/usr/share/nginx/html:ro
+    depends_on: [api]

@@ -1,21 +1,31 @@
+# Web framework
 fastapi==0.111.0
 uvicorn[standard]==0.30.1
 
-numpy==1.26.4
-pillow==10.3.0
+# Core data processing
+numpy==2.3.3
+pillow==11.3.0
 tqdm==4.66.4
-nltk
+nltk==3.9.1
 
-# BLIP (captioning)
-transformers==4.43.2
-torch>=2.2.0
-sentencepiece==0.2.0
-timm==0.9.12
+# HuggingFace ecosystem (latest stable versions)
+transformers==4.45.2
+tokenizers==0.20.1
+safetensors==0.4.5
 huggingface_hub==0.24.5
+sentencepiece==0.2.1
 
-# OpenCLIP (embeddings)
+# PyTorch ecosystem (GPU optimized)
+torch==2.5.1+cu121
+torchvision==0.20.1+cu121
+torchaudio==2.5.1+cu121
+timm==0.9.12
 open_clip_torch==2.24.0
 
-# Vector DB
+# Vector database
 qdrant-client==1.9.2
 
+# Additional dependencies that might be needed
+typing-extensions>=4.12.0
+protobuf>=4.25.0
+requests>=2.31.0

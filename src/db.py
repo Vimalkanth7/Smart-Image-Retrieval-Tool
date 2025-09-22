@@ -67,7 +67,15 @@ class QdrantStore:
                 vector={"image_vec": image_vecs[i].tolist(), "text_vec": text_vecs[i].tolist()},
                 payload=meta
             ))
-        self.c.upsert(collection_name=self.col, points=points, wait=True)
+        # self.c.upsert(collection_name=self.col, points=points, wait=True)
+        batch_size = 256
+        for i in range(0, len(points), batch_size):
+            self.c.upsert(
+                collection_name=self.col,
+                points=points[i:i+batch_size],
+                wait=True
+            )
+
         print(f"[QDRANT] upserted {len(points)} points (ids {start_id}..{start_id+len(points)-1})")
 
     def search_vector(self, q_vec: np.ndarray, top_k: int, vector_name: str):

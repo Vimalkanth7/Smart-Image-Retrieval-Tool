@@ -1,10 +1,27 @@
 # Qdrant database storage
 qdrant_storage/
+qdrant_storage/backup
+old/
+
+README_old.md
+requirements_working.txt
+zip.py
+
+# stop tracking generated artifacts in index
+outputs/index/*.npy
+outputs/index/*.json
+outputs/index/*.jsonl
+
+# exclude this script
+scripts/download_images_robust.py
+
+
 
 # Images (test data)
 images/
 output_screenshots/
 outputs/
+images_old_2500/
 
 # Python
 __pycache__/
@@ -39,6 +56,7 @@ ENV/
 .idea/
 *.swp
 *.swo
+*.zip
 
 # OS
 .DS_Store

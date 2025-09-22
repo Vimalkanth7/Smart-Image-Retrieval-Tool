@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>Smart Image Retrieval Tool</title>
+  <title>Smart Image Retrieval Tool based on the input</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico?v=1">
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; }
@@ -21,7 +21,7 @@
   </style>
 </head>
 <body>
-  <h2>Visual Search</h2>
+  <h2>Smart Image Retrieval Tool</h2>
   <div class="row">
     <input id="q" placeholder="Type a query and click Search"/>
     <select id="mode">
@@ -73,16 +73,28 @@
       for (const [i, r] of data.results.entries()){
         const el = document.createElement('div'); el.className='card';
         const whyId = `why-${i}`;
-        el.innerHTML = `
-          <img src="${r.image_url}" onerror="this.style.display='none'">
-          <!-- Score intentionally hidden -->
-          <div class="cap">${r.caption || ''}</div>
-          <div class="kw"># ${[...(r.keywords||[])].join(', ')}</div>
-          <div class="row" style="margin-top:8px">
-            <button onclick="toggleWhy('${whyId}')">Reason</button>
-          </div>
-          <div id="${whyId}" class="why">${r.why}</div>
-        `;
+        // el.innerHTML = `
+        //   <img src="${r.image_url}" onerror="this.style.display='none'">
+        //   <!-- Score intentionally hidden -->
+        //   <div class="cap">${r.caption || ''}</div>
+        //   <div class="kw"># ${[...(r.keywords||[])].join(', ')}</div>
+        //   <div class="row" style="margin-top:8px">
+        //     <button onclick="toggleWhy('${whyId}')">Reason</button>
+        //   </div>
+        //   <div id="${whyId}" class="why">${r.why}</div>
+        // `;
+          el.innerHTML = `
+            <img src="${r.image_url}" onerror="this.style.display='none'">
+            <!-- Toggle score display -->
+            <!-- <div class="score">Similarity: ${(r.score * 100).toFixed(2)}%</div> -->
+            <div class="cap">${r.caption || ''}</div>
+            <div class="kw"># ${[...(r.keywords||[])].join(', ')}</div>
+            <div class="row" style="margin-top:8px">
+              <button onclick="toggleWhy('${whyId}')">Reason</button>
+            </div>
+            <div id="${whyId}" class="why">${r.why}</div>
+          `;
+
         grid.appendChild(el);
       }
     }
